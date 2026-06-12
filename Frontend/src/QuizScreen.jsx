@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { levelsData } from "./quizData";
+import {CustomLevelData} from "./customLevelData";
 
 export default function QuizScreen() {
   const { levelId } = useParams();
   const navigate = useNavigate();
   const quizData = levelsData[levelId] || [];
+  const customQuizData = CustomLevelData[levelId] || [];
+  const combinedQuizData = [...quizData, ...customQuizData];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -26,9 +29,9 @@ export default function QuizScreen() {
   }, [levelId, navigate]);
 
   useEffect(() => {
-    if (quizData.length === 0) return;
+    if (combinedQuizData.length === 0) return;
 
-    if (currentIndex >= quizData.length) {
+    if (currentIndex >= combinedQuizData.length) {
       // ქულის სამუდამოდ შენახვა ტესტის დასრულებისას
       const savedScores = JSON.parse(localStorage.getItem("quiz_scores")) || {};
       savedScores[levelId] = totalScore;
@@ -38,7 +41,7 @@ export default function QuizScreen() {
       return;
     }
 
-    const currentQuestion = quizData[currentIndex];
+    const currentQuestion = combinedQuizData[currentIndex];
     setTimeLeft(currentQuestion.timeToThink);
     setCurrentScorePotential(currentQuestion.maxScore);
     setSelectedAnswer(null);
@@ -58,7 +61,7 @@ export default function QuizScreen() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [currentIndex, quizData]);
+  }, [currentIndex, combinedQuizData, levelId, totalScore]);
 
   const handleTimeOut = () => {
     setSelectedAnswer("");
@@ -74,7 +77,7 @@ export default function QuizScreen() {
     clearInterval(timerRef.current);
     setSelectedAnswer(answer);
 
-    const currentQuestion = quizData[currentIndex];
+    const currentQuestion = combinedQuizData[currentIndex];
     const correct = answer === currentQuestion.correctAnswer;
     setIsCorrect(correct);
 
@@ -102,7 +105,8 @@ export default function QuizScreen() {
     );
   }
 
-  const currentQuestion = quizData[currentIndex];
+  const currentQuestion = combinedQuizData
+  [currentIndex];
   if (!currentQuestion) return null;
 
   const radius = 24;
@@ -114,7 +118,7 @@ export default function QuizScreen() {
     <div className="quiz-container">
       <div className="quiz-header">
         <div className="progress-text">
-          შეკითხვა <strong>{currentIndex + 1}</strong> / {quizData.length}-დან
+          შეკითხვა <strong>{currentIndex + 1}</strong> / {combinedQuizData.length}-დან
         </div>
         <div className="score-display">
           ქულა: <span>{totalScore}</span>
@@ -124,7 +128,7 @@ export default function QuizScreen() {
       <div className="progress-bar-container">
         <div
           className="progress-bar-fill"
-          style={{ width: `${((currentIndex + 1) / quizData.length) * 100}%` }}
+          style={{ width: `${((currentIndex + 1) / combinedQuizData.length) * 100}%` }}
         ></div>
       </div>
 
