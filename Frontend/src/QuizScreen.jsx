@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { levelsData } from "./quizData";
-import {CustomLevelData} from "./customLevelData";
+import { CustomLevelData } from "./customLevelData";
 
 export default function QuizScreen() {
   const { levelId } = useParams();
   const navigate = useNavigate();
-  const quizData = levelsData[levelId] || [];
-  const customQuizData = CustomLevelData[levelId] || [];
-  const combinedQuizData = [...quizData, ...customQuizData];
+
+  // 1. Memorize the data combination so it doesn't create a new array reference on every tick
+  const combinedQuizData = useMemo(() => {
+    const quizData = levelsData[levelId] || [];
+    const customQuizData = CustomLevelData[levelId] || [];
+    return [...quizData, ...customQuizData];
+  }, [levelId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -28,6 +32,7 @@ export default function QuizScreen() {
     }
   }, [levelId, navigate]);
 
+  // 2. Handling Question Transitions and Timer Intervals
   useEffect(() => {
     if (combinedQuizData.length === 0) return;
 
@@ -61,7 +66,8 @@ export default function QuizScreen() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [currentIndex, combinedQuizData, levelId, totalScore]);
+    // Removed totalScore from dependencies to prevent interval resets when updating points
+  }, [currentIndex, combinedQuizData, levelId]);
 
   const handleTimeOut = () => {
     setSelectedAnswer("");
@@ -105,8 +111,7 @@ export default function QuizScreen() {
     );
   }
 
-  const currentQuestion = combinedQuizData
-  [currentIndex];
+  const currentQuestion = combinedQuizData[currentIndex];
   if (!currentQuestion) return null;
 
   const radius = 24;
