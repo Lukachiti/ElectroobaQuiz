@@ -72,3 +72,4 @@ const customLevelData = {
     },
   ],
 };
+ export { customLevelData as CustomLevelData };
