@@ -357,3 +357,52 @@ body {
   font-weight: bold;
   font-size: 0.95rem;
 }
+
+/* 1. Full viewport wrapper that guarantees absolute centering */
+.quiz-screen-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* 2. Responsive quiz container constraint */
+.quiz-container {
+  width: 100%;
+  max-width: 600px; /* Limits size on desktop */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* 3. Ensure grids split neatly on smaller displays */
+.answers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Default 2-column layout */
+  gap: 15px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* 4. Mobile responsiveness break-point */
+@media (max-width: 480px) {
+  .quiz-screen-wrapper {
+    padding: 10px; /* Less surface restriction on tiny screens */
+  }
+
+  .answers-grid {
+    grid-template-columns: 1fr; /* Stack answers vertically on mobile */
+    gap: 10px;
+  }
+  
+  .quiz-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    text-align: center;
+  }
+}

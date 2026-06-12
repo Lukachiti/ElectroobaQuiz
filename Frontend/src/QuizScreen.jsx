@@ -7,7 +7,7 @@ export default function QuizScreen() {
   const { levelId } = useParams();
   const navigate = useNavigate();
 
-  // 1. Memorize the data combination so it doesn't create a new array reference on every tick
+  // Memorize the data combination so it doesn't create a new array reference on every tick
   const combinedQuizData = useMemo(() => {
     const quizData = levelsData[levelId] || [];
     const customQuizData = CustomLevelData[levelId] || [];
@@ -32,7 +32,7 @@ export default function QuizScreen() {
     }
   }, [levelId, navigate]);
 
-  // 2. Handling Question Transitions and Timer Intervals
+  // Handling Question Transitions and Timer Intervals
   useEffect(() => {
     if (combinedQuizData.length === 0) return;
 
@@ -41,7 +41,7 @@ export default function QuizScreen() {
       const savedScores = JSON.parse(localStorage.getItem("quiz_scores")) || {};
       savedScores[levelId] = totalScore;
       localStorage.setItem("quiz_scores", JSON.stringify(savedScores));
-      
+
       setQuizComplete(true);
       return;
     }
@@ -66,7 +66,6 @@ export default function QuizScreen() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-    // Removed totalScore from dependencies to prevent interval resets when updating points
   }, [currentIndex, combinedQuizData, levelId]);
 
   const handleTimeOut = () => {
@@ -98,14 +97,16 @@ export default function QuizScreen() {
 
   if (quizComplete) {
     return (
-      <div className="quiz-container container-fade-in">
-        <div className="quiz-card end-card">
-          <h2>გილოცავთ! ტესტი დასრულდა 🎉</h2>
-          <p className="final-score-label">თქვენი საბოლოო ქულა</p>
-          <div className="final-score-badge">{totalScore}</div>
-          <button className="btn-restart" onClick={() => navigate("/")}>
-            მთავარ გვერდზე დაბრუნება
-          </button>
+      <div className="quiz-screen-wrapper">
+        <div className="quiz-container container-fade-in">
+          <div className="quiz-card end-card">
+            <h2>გილოცავთ! ტესტი დასრულდა 🎉</h2>
+            <p className="final-score-label">თქვენი საბოლოო ქულა</p>
+            <div className="final-score-badge">{totalScore}</div>
+            <button className="btn-restart" onClick={() => navigate("/")}>
+              მთავარ გვერდზე დაბრუნება
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -120,85 +121,98 @@ export default function QuizScreen() {
     circumference - (timeLeft / currentQuestion.timeToThink) * circumference;
 
   return (
-    <div className="quiz-container">
-      <div className="quiz-header">
-        <div className="progress-text">
-          შეკითხვა <strong>{currentIndex + 1}</strong> / {combinedQuizData.length}-დან
-        </div>
-        <div className="score-display">
-          ქულა: <span>{totalScore}</span>
-        </div>
-      </div>
-
-      <div className="progress-bar-container">
-        <div
-          className="progress-bar-fill"
-          style={{ width: `${((currentIndex + 1) / combinedQuizData.length) * 100}%` }}
-        ></div>
-      </div>
-
-      <div className={`quiz-card ${isCorrect ? "correct-animation" : ""}`}>
-        <div className="card-top">
-          <div className="score-potential">
-            შესაძლო ქულა: <span>{currentScorePotential}</span>
+    <div className="quiz-screen-wrapper">
+      <div className="quiz-container">
+        <div className="quiz-header">
+          <div className="progress-text">
+            შეკითხვა <strong>{currentIndex + 1}</strong> /{" "}
+            {combinedQuizData.length}-დან
           </div>
-
-          <div className="timer-svg-wrapper">
-            <svg width="60" height="60" className="timer-svg">
-              <circle cx="30" cy="30" r={radius} className="timer-circle-bg" />
-              <circle
-                cx="30"
-                cy="30"
-                r={radius}
-                className="timer-circle-fill"
-                style={{
-                  strokeDasharray: circumference,
-                  strokeDashoffset: isNaN(strokeDashoffset) ? 0 : strokeDashoffset,
-                }}
-              />
-            </svg>
-            <span className="timer-text">{timeLeft}</span>
+          <div className="score-display">
+            ქულა: <span>{totalScore}</span>
           </div>
         </div>
 
-        <h2 className="question-text">{currentQuestion.question}</h2>
+        <div className="progress-bar-container">
+          <div
+            className="progress-bar-fill"
+            style={{
+              width: `${((currentIndex + 1) / combinedQuizData.length) * 100}%`,
+            }}
+          ></div>
+        </div>
 
-        <div className="answers-grid">
-          {currentQuestion.answers.map((answer, index) => {
-            let btnClass = "btn-answer";
-            if (selectedAnswer !== null) {
-              if (answer === currentQuestion.correctAnswer) {
-                btnClass += " correct-reveal";
-              } else if (selectedAnswer === answer && !isCorrect) {
-                btnClass += " wrong-reveal";
-              } else {
-                btnClass += " disabled";
+        <div className={`quiz-card ${isCorrect ? "correct-animation" : ""}`}>
+          <div className="card-top">
+            <div className="score-potential">
+              შესაძლო ქულა: <span>{currentScorePotential}</span>
+            </div>
+
+            <div className="timer-svg-wrapper">
+              <svg width="60" height="60" className="timer-svg">
+                <circle
+                  cx="30"
+                  cy="30"
+                  r={radius}
+                  className="timer-circle-bg"
+                />
+                <circle
+                  cx="30"
+                  cy="30"
+                  r={radius}
+                  className="timer-circle-fill"
+                  style={{
+                    strokeDasharray: circumference,
+                    strokeDashoffset: isNaN(strokeDashoffset)
+                      ? 0
+                      : strokeDashoffset,
+                  }}
+                />
+              </svg>
+              <span className="timer-text">{timeLeft}</span>
+            </div>
+          </div>
+
+          <h2 className="question-text">{currentQuestion.question}</h2>
+
+          <div className="answers-grid">
+            {currentQuestion.answers.map((answer, index) => {
+              let btnClass = "btn-answer";
+              if (selectedAnswer !== null) {
+                if (answer === currentQuestion.correctAnswer) {
+                  btnClass += " correct-reveal";
+                } else if (selectedAnswer === answer && !isCorrect) {
+                  btnClass += " wrong-reveal";
+                } else {
+                  btnClass += " disabled";
+                }
               }
-            }
 
-            return (
-              <button
-                key={index}
-                className={btnClass}
-                onClick={() => handleAnswerSelection(answer)}
-                disabled={selectedAnswer !== null}
-              >
-                {answer}
-              </button>
-            );
-          })}
-        </div>
-
-        {isCorrect !== null && (
-          <div className={`feedback-banner ${isCorrect ? "text-success" : "text-danger"}`}>
-            {isCorrect 
-              ? `სწორია! +${currentScorePotential} ქულა` 
-              : selectedAnswer === "" 
-                ? "დრო ამოიწურა!" 
-                : "არასწორია!"
-            }
+              return (
+                <button
+                  key={index}
+                  className={btnClass}
+                  onClick={() => handleAnswerSelection(answer)}
+                  disabled={selectedAnswer !== null}
+                >
+                  {answer}
+                </button>
+              );
+            })}
           </div>
-        )}
+
+          {isCorrect !== null && (
+            <div
+              className={`feedback-banner ${isCorrect ? "text-success" : "text-danger"}`}
+            >
+              {isCorrect
+                ? `სწორია! +${currentScorePotential} ქულა`
+                : selectedAnswer === ""
+                  ? "დრო ამოიწურა!"
+                  : "არასწორია!"}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
