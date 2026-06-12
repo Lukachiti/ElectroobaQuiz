@@ -22,7 +22,7 @@ const customLevelData = {
         "bloxfruits",
         "Brookhaven RP",
       ],
-      correctAnswer: "",
+      correctAnswer: "Adopt Me",
       timeToThink: 15,
       maxScore: 20,
     },
