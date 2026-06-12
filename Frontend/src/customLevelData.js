@@ -71,5 +71,42 @@ const customLevelData = {
       maxScore: 20,
     },
   ],
+  Cars: [
+    {
+      question: "რომელია ყველაზე გამძლე ძრავი?",
+      answers: ["m178 4.0 biturbo", "m176 6.2", "m113k 5.4", "m112 3.7"],
+      correctAnswer: "m113k 5.4",
+      timeToThink: 15,
+      maxScore: 20,
+    },
+{
+      question: "რამდენია რეკორდი ძრავის მოცულობის?",
+      answers: ["7.2l", "12.5l", "28.3l", "20.4l"],
+      correctAnswer: "28.3l",
+      timeToThink: 15,
+      maxScore: 20,
+    },
+{
+      question: "რამდენი ცხენის ძალაა საჭირო რომ მანქანა 0-დან 100-მდე ავიდეს 5წმში?",
+      answers: ["~400", "~200", "~600", "~1000"],
+      correctAnswer: "~400",
+      timeToThink: 15,
+      maxScore: 20,
+    },
+{
+      question: "რა ზომავს ჰაერს მანქანაში რომ ძრავმა მიიღოს სწორი ნაერი საწვავთან?",
+      answers: ["maf სენსორი", "გადაცემათა კოლოფი", "პომპა", "აალების სანთლები"],
+      correctAnswer: "maf სენსორი",
+      timeToThink: 15,
+      maxScore: 20,
+    },
+{
+      question: "რამდენი სარქველი აქვს ბუგატის ლეგენდარულ w16 ძრავას?",
+      answers: ["4", "16", "48", "64"],
+      correctAnswer: "64",
+      timeToThink: 15,
+      maxScore: 20,
+    },
+  ]
 };
  export { customLevelData as CustomLevelData };
