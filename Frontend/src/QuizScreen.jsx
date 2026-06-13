@@ -4,7 +4,7 @@ import { levelsData } from "./quizData";
 import { CustomLevelData } from "./customLevelData";
 
 export default function QuizScreen() {
-  const { levelId } = useParams();
+  
   const navigate = useNavigate();
   
   const { levelId } = useParams();
