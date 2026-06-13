@@ -11,8 +11,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// SERVERLESS MONGOOSE CONNECTION BUFFER
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) return;
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected successfully! 🔌");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error);
+  }
+};
+
 // Authentication Middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.sendStatus(401);
@@ -29,17 +40,17 @@ const authenticateToken = (req, res, next) => {
 // Register
 app.post('/api/auth/register', async (req, res) => {
   try {
+    await connectDB(); // Ensure DB is connected before query running
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Automatically set your specific email as Admin
     const isAdmin = email.toLowerCase() === 'luka.chitidze2109@gmail.com';
 
     const newUser = new User({
       email: email.toLowerCase(),
       password: hashedPassword,
       isAdmin,
-      canCreateLevels: isAdmin // Admin can naturally create levels
+      canCreateLevels: isAdmin 
     });
 
     await newUser.save();
@@ -51,40 +62,45 @@ app.post('/api/auth/register', async (req, res) => {
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) return res.status(400).json({ error: "User not found" });
+  try {
+    await connectDB(); // Ensure DB is connected before query running
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(400).json({ error: "User not found" });
 
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) return res.status(400).json({ error: "Invalid password" });
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.status(400).json({ error: "Invalid password" });
 
-  const token = jwt.sign(
-    { id: user._id, email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels },
-    process.env.JWT_SECRET || 'SUPERSECRETKEY'
-  );
+    const token = jwt.sign(
+      { id: user._id, email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels },
+      process.env.JWT_SECRET || 'SUPERSECRETKEY'
+    );
 
-  res.json({ token, user: { email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels, status: user.levelCreationStatus } });
+    res.json({ token, user: { email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels, status: user.levelCreationStatus || 'none' } });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Login crash." });
+  }
 });
 
 // --- ADMIN & CREATION PERMISSION ENDPOINTS ---
 
-// User requests permission to create levels
 app.post('/api/user/request-creator', authenticateToken, async (req, res) => {
+  await connectDB();
   await User.findByIdAndUpdate(req.user.id, { levelCreationStatus: 'requested' });
   res.json({ message: "Request sent to Admin successfully!" });
 });
 
-// Admin views pending creator requests
 app.get('/api/admin/requests', authenticateToken, async (req, res) => {
   if (!req.user.isAdmin) return res.status(403).json({ error: "Access Denied" });
+  await connectDB();
   const pendingUsers = await User.find({ levelCreationStatus: 'requested' }, 'email levelCreationStatus');
   res.json(pendingUsers);
 });
 
-// Admin approves or rejects a request
 app.post('/api/admin/approve-user', authenticateToken, async (req, res) => {
   if (!req.user.isAdmin) return res.status(403).json({ error: "Access Denied" });
-  const { userId, approve } = req.body; // approve: true or false
+  await connectDB();
+  const { userId, approve } = req.body;
   
   await User.findByIdAndUpdate(userId, {
     canCreateLevels: approve,
@@ -96,15 +112,19 @@ app.post('/api/admin/approve-user', authenticateToken, async (req, res) => {
 
 // --- QUIZ LEVEL ENDPOINTS ---
 
-// Fetch all levels
 app.get('/api/levels', async (req, res) => {
-  const levels = await Level.find().populate('creator', 'email');
-  res.json(levels);
+  try {
+    await connectDB();
+    const levels = await Level.find().populate('creator', 'email');
+    res.json(levels);
+  } catch (error) {
+    res.status(500).json([]);
+  }
 });
 
-// Creator adds a new level
 app.post('/api/levels/create', authenticateToken, async (req, res) => {
   if (!req.user.canCreateLevels) return res.status(403).json({ error: "You do not have creator rights." });
+  await connectDB();
   
   const { title, category, questions } = req.body;
   const newLevel = new Level({
@@ -118,9 +138,10 @@ app.post('/api/levels/create', authenticateToken, async (req, res) => {
   res.status(201).json({ message: "Level added successfully!" });
 });
 
-// Connect to MongoDB & Start
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/quizapp')
-  .then(() => app.listen(5000, () => console.log("Server active on port 5000")));
+// Handle local environment setups cleanly
+if (process.env.NODE_ENV !== 'production') {
+  mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/quizapp')
+    .then(() => app.listen(5000, () => console.log("Local Server active on port 5000")));
+}
 
-  export default app;
-  
+export default app;
