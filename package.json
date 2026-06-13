@@ -1,0 +1,8 @@
+{
+  "name": "electrooba-quiz-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Vercel handles builds via vercel.json'"
+  }
+}
