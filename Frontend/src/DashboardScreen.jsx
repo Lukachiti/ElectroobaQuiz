@@ -11,7 +11,7 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     // Fetch all levels from your Node/Express backend
-    fetch("http://localhost:5000/api/levels")
+    fetch("/api/levels")
       .then((res) => res.json())
       .then((data) => {
         // Filter the levels based on their database category field
@@ -24,7 +24,7 @@ export default function DashboardScreen() {
 
   // Handle requesting creator permissions from Admin
   const handleRequestCreator = async () => {
-    const res = await fetch("http://localhost:5000/api/user/request-creator", {
+    const res = await fetch("/api/user/request-creator", {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}` }
     });
