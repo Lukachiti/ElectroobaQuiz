@@ -6,13 +6,21 @@ import { CustomLevelData } from "./customLevelData";
 export default function QuizScreen() {
   const { levelId } = useParams();
   const navigate = useNavigate();
+  
+  const { levelId } = useParams();
+const [combinedQuizData, setCombinedQuizData] = useState([]);
 
-  // Memorize the data combination so it doesn't create a new array reference on every tick
-  const combinedQuizData = useMemo(() => {
-    const quizData = levelsData[levelId] || [];
-    const customQuizData = CustomLevelData[levelId] || [];
-    return [...quizData, ...customQuizData];
-  }, [levelId]);
+useEffect(() => {
+  fetch(`http://localhost:5000/api/levels`)
+    .then(res => res.json())
+    .then(data => {
+      // Find the current level matching the database _id
+      const currentLevel = data.find(lvl => lvl._id === levelId);
+      if (currentLevel) {
+        setCombinedQuizData(currentLevel.questions);
+      }
+    });
+}, [levelId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
