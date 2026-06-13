@@ -27,5 +27,5 @@ const levelSchema = new mongoose.Schema({
   }]
 });
 
-export const User = mongoose.model('User', userSchema);
-export const Level = mongoose.model('Level', levelSchema);
+export const User = mongoose.models.User || mongoose.model('User', userSchema);
+export const Level = mongoose.models.Level || mongoose.model('Level', levelSchema);
