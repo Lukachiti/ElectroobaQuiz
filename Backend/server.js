@@ -61,25 +61,86 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Login
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     await connectDB(); 
     const { email, password } = req.body;
+    
+    // 1. Check if input fields are missing entirely
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Missing credentials", 
+        message: "Please provide both an email and a password." 
+      });
+    }
+
     const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return res.status(400).json({ error: "User not found" });
+    if (!user) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Authentication failed", 
+        message: "User not found." 
+      });
+    }
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(400).json({ error: "Invalid password" });
+    if (!validPassword) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Authentication failed", 
+        message: "Invalid password." 
+      });
+    }
 
     const token = jwt.sign(
       { id: user._id, email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels },
       process.env.JWT_SECRET || 'SUPERSECRETKEY'
     );
 
-    res.json({ token, user: { email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels, status: user.levelCreationStatus || 'none' } });
+    res.json({ 
+      success: true,
+      token, 
+      user: { 
+        email: user.email, 
+        isAdmin: user.isAdmin, 
+        canCreateLevels: user.canCreateLevels, 
+        status: user.levelCreationStatus || 'none' 
+      } 
+    });
+
   } catch (error) {
-    // CHANGE THIS LINE to see the exact error in your browser console:
-    res.status(500).json({ error: "Internal Server Login crash.", details: error.message });
+    // Log the full error into your server terminal/Vercel logs for your eyes only
+    console.error("🔥 CRITICAL LOGIN ERROR:", error);
+
+    // 2. Custom check for Database Connection Issues
+    if (error.name === 'MongooseServerSelectionError' || error.message.includes('buffering timed out')) {
+      return res.status(503).json({
+        success: false,
+        error: "Database offline",
+        message: "Unable to connect to the database. Please verify your MongoDB network access permissions.",
+        technicalDetails: error.message
+      });
+    }
+
+    // 3. Custom check for JWT configuration problems
+    if (error.message.includes('secret or private key must have a value')) {
+      return res.status(500).json({
+        success: false,
+        error: "Configuration Error",
+        message: "The backend server is missing its JWT_SECRET environment key.",
+        technicalDetails: error.message
+      });
+    }
+
+    // 4. Catch-all for any other unexpected failures
+    res.status(500).json({ 
+      success: false,
+      error: "Internal Server Login crash.", 
+      message: "An unexpected error occurred during login handling.",
+      technicalDetails: error.message // Exposes the raw engine error (e.g., bcrypt crash, type errors)
+    });
   }
 });
 
