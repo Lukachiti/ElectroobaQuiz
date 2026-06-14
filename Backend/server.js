@@ -63,7 +63,7 @@ app.post('/api/auth/register', async (req, res) => {
 // Login
 app.post('/api/auth/login', async (req, res) => {
   try {
-    await connectDB(); // Ensure DB is connected before query running
+    await connectDB(); 
     const { email, password } = req.body;
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(400).json({ error: "User not found" });
@@ -78,7 +78,8 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({ token, user: { email: user.email, isAdmin: user.isAdmin, canCreateLevels: user.canCreateLevels, status: user.levelCreationStatus || 'none' } });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Login crash." });
+    // CHANGE THIS LINE to see the exact error in your browser console:
+    res.status(500).json({ error: "Internal Server Login crash.", details: error.message });
   }
 });
 
