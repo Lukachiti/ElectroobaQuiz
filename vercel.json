@@ -16,12 +16,14 @@
       "dest": "Backend/server.js"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "Frontend/dist/assets/$1"
+      "src": "/(.*)",
+      "dest": "Frontend/$1",
+      "check": true
     },
     {
       "src": "/(.*)",
-      "dest": "Frontend/dist/index.html"
+      "status": 200,
+      "dest": "Frontend/index.html"
     }
   ]
 }
